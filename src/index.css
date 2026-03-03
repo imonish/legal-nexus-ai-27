@@ -6,40 +6,40 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 222 40% 10%;
-    --card-foreground: 210 40% 96%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 222 40% 10%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 90%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 222 30% 16%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 222 20% 18%;
-    --input: 222 20% 18%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --glass: 222 40% 10%;
-    --glass-border: 222 20% 22%;
-    --glow: 217 91% 60%;
-    --surface: 222 35% 8%;
+    --glass: 0 0% 8%;
+    --glass-border: 0 0% 20%;
+    --glass-highlight: 0 0% 100%;
+    --surface: 0 0% 4%;
   }
 }
 
@@ -56,33 +56,55 @@
 
 @layer utilities {
   .glass {
-    background: hsl(var(--glass) / 0.6);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(var(--glass-border) / 0.4);
+    background: hsl(var(--glass) / 0.55);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid hsl(var(--glass-border) / 0.25);
   }
 
   .glass-strong {
-    background: hsl(var(--glass) / 0.8);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid hsl(var(--glass-border) / 0.5);
+    background: hsl(var(--glass) / 0.75);
+    backdrop-filter: blur(60px) saturate(2);
+    -webkit-backdrop-filter: blur(60px) saturate(2);
+    border: 1px solid hsl(var(--glass-border) / 0.35);
+  }
+
+  .glass-card {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--glass) / 0.6),
+      hsl(var(--glass) / 0.3)
+    );
+    backdrop-filter: blur(48px) saturate(1.6);
+    -webkit-backdrop-filter: blur(48px) saturate(1.6);
+    border: 1px solid hsl(var(--glass-border) / 0.2);
+    box-shadow:
+      0 0 0 0.5px hsl(var(--glass-highlight) / 0.05) inset,
+      0 8px 32px -8px hsl(0 0% 0% / 0.5);
   }
 
   .glow-soft {
-    box-shadow: 0 0 60px -12px hsl(var(--glow) / 0.15),
-                0 0 120px -20px hsl(var(--glow) / 0.08);
+    box-shadow:
+      0 0 80px -20px hsl(var(--glass-highlight) / 0.06),
+      0 0 40px -10px hsl(var(--glass-highlight) / 0.03);
   }
 
   .glow-hover {
-    transition: box-shadow 0.4s ease;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   }
   .glow-hover:hover {
-    box-shadow: 0 0 40px -8px hsl(var(--glow) / 0.25);
+    box-shadow:
+      0 0 50px -10px hsl(var(--glass-highlight) / 0.1),
+      0 0 0 0.5px hsl(var(--glass-highlight) / 0.1) inset;
+    border-color: hsl(var(--glass-border) / 0.4);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(210 40% 98%), hsl(var(--primary)));
+    background: linear-gradient(
+      180deg,
+      hsl(0 0% 100%) 0%,
+      hsl(0 0% 60%) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -90,12 +112,29 @@
 
   .bg-grid {
     background-image:
-      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
-    background-size: 60px 60px;
+      linear-gradient(hsl(var(--glass-highlight) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--glass-highlight) / 0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
   }
 
   .bg-radial-glow {
-    background: radial-gradient(ellipse 600px 400px at center, hsl(var(--glow) / 0.08), transparent);
+    background: radial-gradient(
+      ellipse 50% 50% at center,
+      hsl(var(--glass-highlight) / 0.04),
+      transparent
+    );
+  }
+
+  .bg-noise {
+    position: relative;
+  }
+  .bg-noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
   }
 }
