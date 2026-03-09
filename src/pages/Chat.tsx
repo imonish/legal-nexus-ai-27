@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Scale, Plus, Send, Upload, FileDown, Sparkles } from "lucide-react";
+import { Scale, Plus, Send, Upload, FileDown, Sparkles, Copy, Check } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
+import DoodleAnimals from "@/components/DoodleAnimals";
 
 type Message = {
   id: string;
@@ -15,32 +16,37 @@ type Message = {
 type Mode = "simple" | "professional";
 
 const SUGGESTIONS = [
-  "Explain this NDA clause in simple terms",
-  "What are the risks in this employment contract?",
-  "Summarize the key points of GDPR compliance",
-  "Draft a cease and desist letter template",
+  "How do I file an FIR for online fraud?",
+  "Where do I file a consumer complaint?",
+  "What are my rights as a tenant?",
+  "Draft a legal notice for non-payment",
 ];
 
 const getMockResponse = (message: string, mode: Mode): string => {
   const isSimple = mode === "simple";
-  if (message.toLowerCase().includes("nda")) {
+  if (message.toLowerCase().includes("fir") || message.toLowerCase().includes("fraud")) {
     return isSimple
-      ? "An NDA (Non-Disclosure Agreement) is basically a promise to keep secrets. It says: \"I won't share your private information with anyone.\" If you break this promise, there can be legal consequences like fines or lawsuits.\n\n**Key things to look for:**\n- How long does the secrecy last?\n- What counts as \"confidential\"?\n- What happens if you accidentally share something?"
-      : "A Non-Disclosure Agreement (NDA) constitutes a legally binding contract establishing a confidential relationship between parties.\n\n**Material Terms to Evaluate:**\n1. **Scope of Confidential Information** — Ensure precise definition under §2\n2. **Duration of Obligation** — Typical range: 2-5 years post-termination\n3. **Permitted Disclosures** — Carve-outs for legal compliance\n4. **Remedies** — Injunctive relief provisions and liquidated damages\n\n*Citation: Uniform Trade Secrets Act (UTSA) §1(4)*";
+      ? "Here's how to file an FIR for online fraud:\n\n**Step 1:** Collect all evidence — screenshots, transaction IDs, emails\n**Step 2:** Visit the National Cyber Crime Portal at cybercrime.gov.in\n**Step 3:** Register your complaint online\n**Step 4:** Visit your nearest police station with printed evidence\n**Step 5:** Request a copy of the FIR for your records\n\n📌 **Authority:** Cyber Crime Cell\n🔗 **Portal:** cybercrime.gov.in\n⏱ **Processing Time:** 24-72 hours for acknowledgment"
+      : "**Filing an FIR for Cyber Fraud — Legal Procedure**\n\n**Applicable Law:** Information Technology Act, 2000 (§66C, §66D) read with IPC §420\n\n**Procedure:**\n1. **Evidence Preservation** — Document all digital evidence per §65B Indian Evidence Act\n2. **Online Complaint** — File at National Cyber Crime Reporting Portal (cybercrime.gov.in)\n3. **Jurisdictional FIR** — Section 154 CrPC mandates registration at nearest PS\n4. **Zero FIR** — If jurisdictional issues arise, invoke Zero FIR provision\n\n**Competent Authority:** Cyber Crime Investigation Cell\n**Statutory Timeline:** FIR must be registered without unreasonable delay (§154 CrPC)\n**Remedy if refused:** Approach SP/Magistrate under §156(3) CrPC";
   }
-  if (message.toLowerCase().includes("contract") || message.toLowerCase().includes("employment")) {
+  if (message.toLowerCase().includes("consumer")) {
     return isSimple
-      ? "When reviewing an employment contract, watch out for:\n\n🔴 **Non-compete clauses** — Could stop you from working in your field\n🔴 **IP assignment** — Your employer might own everything you create\n🔴 **At-will termination** — They can let you go anytime\n\nAlways negotiate before signing!"
-      : "Employment contract risk assessment requires analysis across multiple dimensions:\n\n**High-Priority Risk Vectors:**\n\n1. **Restrictive Covenants (§7-9)**\n   - Non-compete geographic/temporal scope\n   - Non-solicitation provisions\n   - Enforceability varies by jurisdiction\n\n2. **Intellectual Property Assignment (§12)**\n   - Work-for-hire doctrine applicability\n   - Pre-existing IP carve-outs\n\n3. **Termination Provisions (§15)**\n   - Severance triggers and calculations\n   - Change-of-control provisions";
+      ? "To file a consumer complaint:\n\n**Step 1:** Gather purchase receipts and communication records\n**Step 2:** Send a legal notice to the company (30 days)\n**Step 3:** File complaint on consumerhelpline.gov.in\n**Step 4:** If unresolved, approach District Consumer Forum\n\n📌 **Authority:** Consumer Disputes Redressal Commission\n🔗 **Portal:** consumerhelpline.gov.in\n💰 **Claims up to ₹1 Crore:** District Forum\n💰 **₹1-10 Crore:** State Commission"
+      : "**Consumer Complaint Filing — Legal Framework**\n\n**Governing Law:** Consumer Protection Act, 2019\n\n**Jurisdictional Hierarchy:**\n| Forum | Pecuniary Jurisdiction |\n|-------|----------------------|\n| District Commission | Up to ₹1 Crore |\n| State Commission | ₹1 Cr - ₹10 Cr |\n| National Commission | Above ₹10 Crore |\n\n**Procedure per §35:**\n1. Issue legal notice (recommended, not mandatory)\n2. File complaint with prescribed fee\n3. Attach documentary evidence\n4. Hearing within 21 days of admission\n\n**Limitation:** 2 years from cause of action (§69)";
   }
-  if (message.toLowerCase().includes("gdpr")) {
+  if (message.toLowerCase().includes("tenant") || message.toLowerCase().includes("rent")) {
     return isSimple
-      ? "GDPR is Europe's big privacy law:\n\n✅ People own their data\n✅ Companies must ask permission to use it\n✅ People can ask to have their data deleted\n✅ Data breaches must be reported within 72 hours\n\nFines can reach up to 4% of global revenue."
-      : "The General Data Protection Regulation (EU 2016/679) establishes comprehensive data protection requirements:\n\n**Core Compliance Framework:**\n\n| Principle | Article | Requirement |\n|-----------|---------|-------------|\n| Lawfulness | Art. 6 | Valid legal basis |\n| Purpose Limitation | Art. 5(1)(b) | Specified purposes |\n| Data Minimization | Art. 5(1)(c) | Adequate, relevant, limited |\n\n**Enforcement:**\n- Tier 1: Up to €10M or 2% global turnover\n- Tier 2: Up to €20M or 4% global turnover\n\n*Reference: EDPB Guidelines 07/2020*";
+      ? "As a tenant, you have these rights:\n\n✅ **Right to fair rent** — Landlord cannot charge unreasonable rent\n✅ **Right to essential services** — Water, electricity cannot be cut off\n✅ **Right to privacy** — Landlord must give notice before visiting\n✅ **Right against eviction** — Cannot be evicted without due process\n✅ **Right to receipt** — Must get rent receipts\n\n⚠️ **If harassed:** File complaint at local police station or approach Rent Controller"
+      : "**Tenant Rights — Legal Analysis**\n\n**Governing Laws:** State-specific Rent Control Acts; Model Tenancy Act, 2021\n\n**Fundamental Rights:**\n1. **Protection from eviction** — §21 Model Tenancy Act\n2. **Fair rent determination** — §4 (Rent Authority)\n3. **Essential services** — §27 (criminal offense to withhold)\n4. **Written agreement** — §4(1) mandatory rent agreement\n\n**Remedies:**\n- Rent Authority for disputes\n- Civil Court for injunctive relief\n- Criminal complaint under §504/506 IPC for harassment\n\n**Limitation:** Varies by state legislation";
+  }
+  if (message.toLowerCase().includes("legal notice") || message.toLowerCase().includes("draft")) {
+    return isSimple
+      ? "I can help you draft a legal notice! Here's what I need:\n\n📝 **Required Information:**\n- Your full name and address\n- Recipient's name and address\n- Subject of the dispute\n- Facts of the case\n- Relief/action you're seeking\n- Time limit for response (usually 15-30 days)\n\n💡 **Tip:** A legal notice is typically sent via registered post/speed post for proof of delivery.\n\nWould you like me to generate a draft? Just tell me the details!"
+      : "**Legal Notice Drafting — Requirements**\n\n**Legal Basis:** §80 CPC (mandatory for suits against Government); advisory for private disputes\n\n**Essential Components:**\n1. **Cause Title** — Sender & Recipient details\n2. **Statement of Facts** — Chronological narration\n3. **Legal Grounds** — Applicable provisions\n4. **Relief Sought** — Specific demands\n5. **Time for Compliance** — 15/30 days standard\n6. **Consequence Clause** — Legal proceedings warning\n\n**Service:** Registered AD Post / Speed Post\n\nPlease provide the factual matrix and I shall generate the appropriate notice.";
   }
   return isSimple
-    ? "I've analyzed your query. The key principle is that contracts require **offer, acceptance, and consideration** to be valid.\n\nWould you like me to go deeper into any specific aspect?"
-    : "Upon analysis, the matter falls under general contract law principles, specifically mutual assent (*Restatement (Second) of Contracts §17*) and adequate consideration.\n\n**Recommendation:** Please provide:\n1. Relevant jurisdiction\n2. Specific contractual provisions\n3. Factual circumstances";
+    ? "I understand your legal concern. Let me help you navigate this.\n\n**To give you the best guidance, please share:**\n1. What happened? (brief description)\n2. When did it happen?\n3. Where are you located? (state/city)\n\nThis will help me identify the correct authority, applicable laws, and step-by-step procedure for your situation."
+    : "Your query has been noted. To provide comprehensive legal guidance, the following information is required:\n\n1. **Factual Matrix** — Detailed chronology of events\n2. **Jurisdiction** — State and district\n3. **Relief Sought** — Desired outcome\n4. **Documentation** — Available evidence\n\nUpon receipt of the above, I shall provide:\n- Applicable legal provisions\n- Competent authority/forum\n- Procedural workflow\n- Estimated timeline and costs";
 };
 
 const Chat = () => {
@@ -104,19 +110,17 @@ const Chat = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "legal-ai-conversation.txt";
+    a.download = "lexguide-conversation.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background relative overflow-hidden bg-noise">
-      {/* Background */}
-      <div className="absolute inset-0 bg-grid opacity-60" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-radial-glow" />
+    <div className="h-screen flex flex-col bg-background relative overflow-hidden">
+      <DoodleAnimals />
 
       {/* Top nav */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-border/30">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-border/50">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2.5 hover:opacity-70 transition-opacity duration-500"
@@ -124,11 +128,10 @@ const Chat = () => {
           <div className="w-8 h-8 rounded-xl glass-card flex items-center justify-center">
             <Scale className="w-3.5 h-3.5 text-foreground" />
           </div>
-          <span className="text-sm font-semibold text-foreground tracking-tight">Legal AI Nexus</span>
+          <span className="text-sm font-semibold text-foreground tracking-tight">LexGuide AI</span>
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Mode toggle */}
           <div className="flex items-center glass-card rounded-2xl p-1 text-xs">
             <button
               onClick={() => setMode("simple")}
@@ -182,14 +185,14 @@ const Chat = () => {
               transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-col items-center justify-center min-h-[60vh] text-center"
             >
-              <div className="w-16 h-16 rounded-3xl glass-card flex items-center justify-center mb-7 animate-glow-pulse">
-                <Sparkles className="w-7 h-7 text-foreground/80" />
+              <div className="w-16 h-16 rounded-3xl glass-card flex items-center justify-center mb-7">
+                <Sparkles className="w-7 h-7 text-foreground/60" />
               </div>
               <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-tight">
-                Legal AI Nexus
+                LexGuide AI
               </h2>
               <p className="text-muted-foreground mb-12 max-w-md text-sm font-light leading-relaxed">
-                Ask any legal question, analyze contracts, or get case research insights.
+                Your digital legal consultant. Ask about laws, file complaints, or generate legal documents.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
@@ -221,7 +224,7 @@ const Chat = () => {
       </div>
 
       {/* Input */}
-      <div className="relative z-10 border-t border-border/30 bg-background/60 backdrop-blur-2xl">
+      <div className="relative z-10 border-t border-border/50 bg-background/80 backdrop-blur-2xl">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="glass-card rounded-2xl p-3 flex items-end gap-3 glow-hover">
             <button
@@ -236,7 +239,7 @@ const Chat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a legal question..."
+              placeholder="Describe your legal issue..."
               rows={1}
               className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/40 text-sm resize-none outline-none py-2.5 max-h-32 leading-relaxed"
               style={{ minHeight: "24px" }}
@@ -251,8 +254,8 @@ const Chat = () => {
             </button>
           </div>
 
-          <p className="text-[10px] text-muted-foreground/25 text-center mt-3 tracking-wide">
-            Legal AI Nexus provides AI-generated legal information, not legal advice. Built by Monish Kumar.
+          <p className="text-[10px] text-muted-foreground/30 text-center mt-3 tracking-wide">
+            LexGuide AI provides AI-generated legal information, not legal advice. Built by Monish Kumar.
           </p>
         </div>
       </div>
