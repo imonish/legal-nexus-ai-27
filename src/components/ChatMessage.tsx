@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Scale, User, Copy, Check } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 type Props = {
   message: {
@@ -35,7 +36,7 @@ const ChatMessage = ({ message }: Props) => {
         </div>
       )}
 
-      <div className="max-w-[80%] group relative">
+      <div className="max-w-[85%] group relative">
         <div
           className={`rounded-2xl px-5 py-4 text-sm leading-relaxed ${
             isAI
@@ -44,21 +45,24 @@ const ChatMessage = ({ message }: Props) => {
           }`}
         >
           {isAI ? (
-            <div
-              className="[&_strong]:text-foreground [&_strong]:font-semibold
-                [&_ul]:space-y-1 [&_ol]:space-y-1
-                [&_li]:text-foreground/80
-                [&_p]:text-foreground/80
-                [&_em]:text-muted-foreground [&_em]:text-xs
-                [&_code]:text-foreground/90 [&_code]:bg-foreground/5 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded"
-              dangerouslySetInnerHTML={{
-                __html: message.content
-                  .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                  .replace(/\*(.*?)\*/g, "<em>$1</em>")
-                  .replace(/`(.*?)`/g, "<code>$1</code>")
-                  .replace(/\n/g, "<br/>"),
-              }}
-            />
+            <div className="prose prose-sm prose-invert max-w-none
+              prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tight
+              prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:first:mt-0
+              prose-h3:text-sm prose-h3:mt-3 prose-h3:mb-1
+              prose-p:text-foreground/80 prose-p:text-sm prose-p:leading-relaxed prose-p:my-1.5
+              prose-strong:text-foreground prose-strong:font-semibold
+              prose-em:text-muted-foreground prose-em:text-xs
+              prose-a:text-foreground prose-a:underline prose-a:underline-offset-2 prose-a:decoration-foreground/30 hover:prose-a:decoration-foreground/60
+              prose-ul:my-1.5 prose-ol:my-1.5 prose-li:text-foreground/80 prose-li:text-sm prose-li:my-0.5
+              prose-code:text-foreground/90 prose-code:bg-foreground/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs
+              prose-table:my-3
+              prose-th:text-foreground/90 prose-th:text-xs prose-th:font-medium prose-th:px-3 prose-th:py-1.5 prose-th:border-b prose-th:border-border/50 prose-th:text-left
+              prose-td:text-foreground/70 prose-td:text-xs prose-td:px-3 prose-td:py-1.5 prose-td:border-b prose-td:border-border/20
+              prose-blockquote:border-l-2 prose-blockquote:border-foreground/20 prose-blockquote:pl-4 prose-blockquote:my-2 prose-blockquote:text-foreground/70
+              prose-hr:border-border/30 prose-hr:my-4
+            ">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
           ) : (
             <p>{message.content}</p>
           )}
