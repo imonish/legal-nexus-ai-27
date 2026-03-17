@@ -17,10 +17,11 @@ type Message = {
 type Mode = "simple" | "professional";
 
 const SUGGESTIONS = [
-  "How do I file an FIR for online fraud?",
-  "Where do I file a consumer complaint?",
-  "What are my rights as a tenant?",
-  "Draft a legal notice for non-payment",
+  "I was scammed online, how do I file an FIR?",
+  "I bought a defective product, where do I file a consumer complaint?",
+  "What are my rights as a tenant in India?",
+  "I need to draft a legal notice for non-payment",
+  "Find me a cyber crime lawyer",
 ];
 
 const getMockResponse = (message: string, mode: Mode): string => {
