@@ -22,7 +22,7 @@ const DoodleAnimals = () => (
         key={i}
         src={animal.src}
         alt=""
-        className="absolute opacity-[0.07]"
+        className="absolute opacity-[0.12] invert"
         style={{
           width: animal.size,
           height: animal.size,

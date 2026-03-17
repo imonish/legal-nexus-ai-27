@@ -6,40 +6,40 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 5%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 93%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 5%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 93%;
 
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 5%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 93%;
 
-    --primary: 0 0% 5%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 7%;
 
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 20%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 70%;
 
-    --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 5%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 93%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 5%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 50%;
 
     --radius: 1rem;
 
     --glass: 0 0% 100%;
-    --glass-border: 0 0% 0%;
-    --glass-highlight: 0 0% 0%;
-    --surface: 0 0% 97%;
+    --glass-border: 0 0% 100%;
+    --glass-highlight: 0 0% 100%;
+    --surface: 0 0% 11%;
   }
 }
 
@@ -56,31 +56,31 @@
 
 @layer utilities {
   .glass {
-    background: hsl(var(--glass) / 0.65);
-    backdrop-filter: blur(40px) saturate(1.8);
-    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    background: hsl(var(--glass) / 0.05);
+    backdrop-filter: blur(40px) saturate(1.5);
+    -webkit-backdrop-filter: blur(40px) saturate(1.5);
     border: 1px solid hsl(var(--glass-border) / 0.08);
   }
 
   .glass-strong {
-    background: hsl(var(--glass) / 0.85);
-    backdrop-filter: blur(60px) saturate(2);
-    -webkit-backdrop-filter: blur(60px) saturate(2);
+    background: hsl(var(--glass) / 0.1);
+    backdrop-filter: blur(60px) saturate(1.8);
+    -webkit-backdrop-filter: blur(60px) saturate(1.8);
     border: 1px solid hsl(var(--glass-border) / 0.12);
   }
 
   .glass-card {
     background: linear-gradient(
       135deg,
-      hsl(var(--glass) / 0.7),
-      hsl(var(--glass) / 0.4)
+      hsl(var(--glass) / 0.06),
+      hsl(var(--glass) / 0.02)
     );
-    backdrop-filter: blur(48px) saturate(1.6);
-    -webkit-backdrop-filter: blur(48px) saturate(1.6);
+    backdrop-filter: blur(48px) saturate(1.4);
+    -webkit-backdrop-filter: blur(48px) saturate(1.4);
     border: 1px solid hsl(var(--glass-border) / 0.08);
     box-shadow:
-      0 0 0 0.5px hsl(var(--glass-highlight) / 0.03) inset,
-      0 8px 32px -8px hsl(0 0% 0% / 0.08);
+      0 0 0 0.5px hsl(var(--glass-highlight) / 0.02) inset,
+      0 8px 32px -8px hsl(0 0% 0% / 0.3);
   }
 
   .glow-soft {
@@ -102,8 +102,8 @@
   .text-gradient {
     background: linear-gradient(
       180deg,
-      hsl(0 0% 5%) 0%,
-      hsl(0 0% 40%) 100%
+      hsl(0 0% 90%) 0%,
+      hsl(0 0% 45%) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -112,15 +112,15 @@
 
   .bg-grid {
     background-image:
-      linear-gradient(hsl(var(--glass-highlight) / 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--glass-highlight) / 0.04) 1px, transparent 1px);
+      linear-gradient(hsl(var(--glass-highlight) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--glass-highlight) / 0.03) 1px, transparent 1px);
     background-size: 80px 80px;
   }
 
   .bg-radial-glow {
     background: radial-gradient(
       ellipse 50% 50% at center,
-      hsl(var(--glass-highlight) / 0.03),
+      hsl(var(--glass-highlight) / 0.04),
       transparent
     );
   }
