@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Scale, Plus, Send, Upload, FileDown, Sparkles, Copy, Check } from "lucide-react";
+import { Scale, Plus, Send, Upload, FileDown, Sparkles } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
 import DoodleAnimals from "@/components/DoodleAnimals";
+import { getMockResponse } from "@/data/mockResponses";
 
 type Message = {
   id: string;
