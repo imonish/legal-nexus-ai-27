@@ -24,32 +24,6 @@ const SUGGESTIONS = [
   "Find me a cyber crime lawyer",
 ];
 
-const getMockResponse = (message: string, mode: Mode): string => {
-  const isSimple = mode === "simple";
-  if (message.toLowerCase().includes("fir") || message.toLowerCase().includes("fraud")) {
-    return isSimple
-      ? "Here's how to file an FIR for online fraud:\n\n**Step 1:** Collect all evidence — screenshots, transaction IDs, emails\n**Step 2:** Visit the National Cyber Crime Portal at cybercrime.gov.in\n**Step 3:** Register your complaint online\n**Step 4:** Visit your nearest police station with printed evidence\n**Step 5:** Request a copy of the FIR for your records\n\n📌 **Authority:** Cyber Crime Cell\n🔗 **Portal:** cybercrime.gov.in\n⏱ **Processing Time:** 24-72 hours for acknowledgment"
-      : "**Filing an FIR for Cyber Fraud — Legal Procedure**\n\n**Applicable Law:** Information Technology Act, 2000 (§66C, §66D) read with IPC §420\n\n**Procedure:**\n1. **Evidence Preservation** — Document all digital evidence per §65B Indian Evidence Act\n2. **Online Complaint** — File at National Cyber Crime Reporting Portal (cybercrime.gov.in)\n3. **Jurisdictional FIR** — Section 154 CrPC mandates registration at nearest PS\n4. **Zero FIR** — If jurisdictional issues arise, invoke Zero FIR provision\n\n**Competent Authority:** Cyber Crime Investigation Cell\n**Statutory Timeline:** FIR must be registered without unreasonable delay (§154 CrPC)\n**Remedy if refused:** Approach SP/Magistrate under §156(3) CrPC";
-  }
-  if (message.toLowerCase().includes("consumer")) {
-    return isSimple
-      ? "To file a consumer complaint:\n\n**Step 1:** Gather purchase receipts and communication records\n**Step 2:** Send a legal notice to the company (30 days)\n**Step 3:** File complaint on consumerhelpline.gov.in\n**Step 4:** If unresolved, approach District Consumer Forum\n\n📌 **Authority:** Consumer Disputes Redressal Commission\n🔗 **Portal:** consumerhelpline.gov.in\n💰 **Claims up to ₹1 Crore:** District Forum\n💰 **₹1-10 Crore:** State Commission"
-      : "**Consumer Complaint Filing — Legal Framework**\n\n**Governing Law:** Consumer Protection Act, 2019\n\n**Jurisdictional Hierarchy:**\n| Forum | Pecuniary Jurisdiction |\n|-------|----------------------|\n| District Commission | Up to ₹1 Crore |\n| State Commission | ₹1 Cr - ₹10 Cr |\n| National Commission | Above ₹10 Crore |\n\n**Procedure per §35:**\n1. Issue legal notice (recommended, not mandatory)\n2. File complaint with prescribed fee\n3. Attach documentary evidence\n4. Hearing within 21 days of admission\n\n**Limitation:** 2 years from cause of action (§69)";
-  }
-  if (message.toLowerCase().includes("tenant") || message.toLowerCase().includes("rent")) {
-    return isSimple
-      ? "As a tenant, you have these rights:\n\n✅ **Right to fair rent** — Landlord cannot charge unreasonable rent\n✅ **Right to essential services** — Water, electricity cannot be cut off\n✅ **Right to privacy** — Landlord must give notice before visiting\n✅ **Right against eviction** — Cannot be evicted without due process\n✅ **Right to receipt** — Must get rent receipts\n\n⚠️ **If harassed:** File complaint at local police station or approach Rent Controller"
-      : "**Tenant Rights — Legal Analysis**\n\n**Governing Laws:** State-specific Rent Control Acts; Model Tenancy Act, 2021\n\n**Fundamental Rights:**\n1. **Protection from eviction** — §21 Model Tenancy Act\n2. **Fair rent determination** — §4 (Rent Authority)\n3. **Essential services** — §27 (criminal offense to withhold)\n4. **Written agreement** — §4(1) mandatory rent agreement\n\n**Remedies:**\n- Rent Authority for disputes\n- Civil Court for injunctive relief\n- Criminal complaint under §504/506 IPC for harassment\n\n**Limitation:** Varies by state legislation";
-  }
-  if (message.toLowerCase().includes("legal notice") || message.toLowerCase().includes("draft")) {
-    return isSimple
-      ? "I can help you draft a legal notice! Here's what I need:\n\n📝 **Required Information:**\n- Your full name and address\n- Recipient's name and address\n- Subject of the dispute\n- Facts of the case\n- Relief/action you're seeking\n- Time limit for response (usually 15-30 days)\n\n💡 **Tip:** A legal notice is typically sent via registered post/speed post for proof of delivery.\n\nWould you like me to generate a draft? Just tell me the details!"
-      : "**Legal Notice Drafting — Requirements**\n\n**Legal Basis:** §80 CPC (mandatory for suits against Government); advisory for private disputes\n\n**Essential Components:**\n1. **Cause Title** — Sender & Recipient details\n2. **Statement of Facts** — Chronological narration\n3. **Legal Grounds** — Applicable provisions\n4. **Relief Sought** — Specific demands\n5. **Time for Compliance** — 15/30 days standard\n6. **Consequence Clause** — Legal proceedings warning\n\n**Service:** Registered AD Post / Speed Post\n\nPlease provide the factual matrix and I shall generate the appropriate notice.";
-  }
-  return isSimple
-    ? "I understand your legal concern. Let me help you navigate this.\n\n**To give you the best guidance, please share:**\n1. What happened? (brief description)\n2. When did it happen?\n3. Where are you located? (state/city)\n\nThis will help me identify the correct authority, applicable laws, and step-by-step procedure for your situation."
-    : "Your query has been noted. To provide comprehensive legal guidance, the following information is required:\n\n1. **Factual Matrix** — Detailed chronology of events\n2. **Jurisdiction** — State and district\n3. **Relief Sought** — Desired outcome\n4. **Documentation** — Available evidence\n\nUpon receipt of the above, I shall provide:\n- Applicable legal provisions\n- Competent authority/forum\n- Procedural workflow\n- Estimated timeline and costs";
-};
 
 const Chat = () => {
   const navigate = useNavigate();
