@@ -23,4 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 chroma_store/ 
-chroma_store/ 
+backend/chroma_store/
+drive-download-20260321T070415Z-3-001/
+__pycache__/
+backend/__pycache__/
+.env
+node_modules/
+*.pyc

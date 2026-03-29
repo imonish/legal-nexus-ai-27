@@ -5,7 +5,6 @@ import { Scale, Plus, Send, Upload, FileDown, Sparkles } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
 import DoodleAnimals from "@/components/DoodleAnimals";
-import { getMockResponse } from "@/data/mockResponses";
 
 type Message = {
   id: string;
@@ -53,17 +52,35 @@ const Chat = () => {
     setInput("");
     setIsTyping(true);
 
-    await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800));
+    try {
+      const res = await fetch(`http://${window.location.hostname}:8000/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: content }),
+      });
 
-    const aiMsg: Message = {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content: getMockResponse(content, mode),
-      timestamp: new Date(),
-    };
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
 
-    setIsTyping(false);
-    setMessages((prev) => [...prev, aiMsg]);
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: data.answer,
+        timestamp: new Date(),
+      };
+
+      setIsTyping(false);
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (err) {
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Sorry, I couldn't reach the legal database. Please make sure the backend server is running.",
+        timestamp: new Date(),
+      };
+      setIsTyping(false);
+      setMessages((prev) => [...prev, aiMsg]);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
