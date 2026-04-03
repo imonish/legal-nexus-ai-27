@@ -22,7 +22,8 @@ import requests
 load_dotenv()
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-CHROMA_DIR       = "./backend/chroma_store"
+BASE_DIR         = Path(__file__).resolve().parent
+CHROMA_DIR       = str(BASE_DIR / "chroma_store")
 COLLECTION       = "legal_acts"
 OLLAMA_URL       = "http://localhost:11434/api/embed"
 EMBED_MODEL      = "mxbai-embed-large"
@@ -34,7 +35,7 @@ EMBED_MAX_CHARS  = 1200
 
 # Section regex: matches "12. Some Title.—" or "12A. Some Title.—"
 SECTION_PATTERN = re.compile(
-    r'(?m)^(\d+[A-Z]?)\.\s+([A-Za-z][^.\n]{0,80}?)\.—'
+    r'(?m)^(\d+[A-Z]?)\.\s+([A-Za-z][^.\n]{0,80}?)(?:\.[-—]|\.(?:\s{2,}|\n))'
 )
 
 MIN_ALPHA_RATIO = 0.45
