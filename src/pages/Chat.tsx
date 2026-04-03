@@ -6,11 +6,21 @@ import ChatMessage from "@/components/ChatMessage";
 import TypingIndicator from "@/components/TypingIndicator";
 import DoodleAnimals from "@/components/DoodleAnimals";
 
+type Source = {
+  act: string;
+  section: string;
+  title: string;
+  file: string;
+  similarity: number;
+};
+
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  sources?: Source[];
+  expandedQuery?: string;
 };
 
 type Mode = "simple" | "professional";
@@ -23,10 +33,18 @@ const SUGGESTIONS = [
   "Find me a cyber crime lawyer",
 ];
 
-
 const Chat = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem("lexguide-messages");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [mode, setMode] = useState<Mode>("simple");
@@ -36,6 +54,14 @@ const Chat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("lexguide-messages", JSON.stringify(messages));
+    } catch {
+      // storage full or unavailable — fail silently
+    }
+  }, [messages]);
 
   const handleSend = async (text?: string) => {
     const content = text || input.trim();
@@ -56,7 +82,13 @@ const Chat = () => {
       const res = await fetch(`http://${window.location.hostname}:8000/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: content }),
+        body: JSON.stringify({
+          question: content,
+          history: messages.slice(-6).map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
       });
 
       if (!res.ok) throw new Error("API error");
@@ -67,6 +99,8 @@ const Chat = () => {
         role: "assistant",
         content: data.answer,
         timestamp: new Date(),
+        sources: data.sources || [],
+        expandedQuery: data.expanded_query || "",
       };
 
       setIsTyping(false);
@@ -75,7 +109,8 @@ const Chat = () => {
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "Sorry, I couldn't reach the legal database. Please make sure the backend server is running.",
+        content:
+          "Sorry, I couldn't reach the legal database. Please make sure the backend server is running.",
         timestamp: new Date(),
       };
       setIsTyping(false);
@@ -93,6 +128,7 @@ const Chat = () => {
   const handleNewChat = () => {
     setMessages([]);
     setInput("");
+    localStorage.removeItem("lexguide-messages");
   };
 
   const handleExport = () => {
@@ -121,7 +157,9 @@ const Chat = () => {
           <div className="w-8 h-8 rounded-xl glass-card flex items-center justify-center">
             <Scale className="w-3.5 h-3.5 text-foreground" />
           </div>
-          <span className="text-sm font-semibold text-foreground tracking-tight">LexGuide AI</span>
+          <span className="text-sm font-semibold text-foreground tracking-tight">
+            LexGuide AI
+          </span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -185,7 +223,8 @@ const Chat = () => {
                 LexGuide AI
               </h2>
               <p className="text-muted-foreground mb-12 max-w-md text-sm font-light leading-relaxed">
-                Your digital legal consultant. Ask about laws, file complaints, or generate legal documents.
+                Your digital legal consultant. Ask about laws, file complaints,
+                or generate legal documents.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
@@ -194,7 +233,11 @@ const Chat = () => {
                     key={i}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + i * 0.1, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                    transition={{
+                      delay: 0.4 + i * 0.1,
+                      duration: 0.5,
+                      ease: [0.23, 1, 0.32, 1],
+                    }}
                     onClick={() => handleSend(s)}
                     className="text-left p-4 rounded-2xl glass-card text-xs text-muted-foreground hover:text-foreground transition-all duration-500 glow-hover leading-relaxed"
                   >
@@ -248,7 +291,8 @@ const Chat = () => {
           </div>
 
           <p className="text-[10px] text-muted-foreground/30 text-center mt-3 tracking-wide">
-            LexGuide AI provides AI-generated legal information, not legal advice. Built by Monish Kumar.
+            LexGuide AI provides AI-generated legal information, not legal
+            advice. Built by Monish Kumar.
           </p>
         </div>
       </div>

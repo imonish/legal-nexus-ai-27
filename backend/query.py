@@ -9,6 +9,7 @@ Usage:
 """
 
 import json
+import re
 import sys
 import time
 
@@ -24,6 +25,7 @@ LLM_MODEL = "mistral"
 
 TOP_K = 8
 MAX_TOKENS = 1024
+MIN_SIMILARITY = 0.55  # below this = not in database
 
 
 def embed_query(text: str) -> list[float]:
@@ -44,7 +46,7 @@ def embed_query(text: str) -> list[float]:
 
 
 def retrieve(query_embedding: list[float], top_k: int = TOP_K) -> list[dict]:
-    """Query ChromaDB for the top-k most similar chunks."""
+    """Retrieve the most relevant chunks from ChromaDB."""
     client = chromadb.PersistentClient(path=CHROMA_DIR)
     collection = client.get_collection(COLLECTION)
 
@@ -54,7 +56,7 @@ def retrieve(query_embedding: list[float], top_k: int = TOP_K) -> list[dict]:
         include=["documents", "metadatas", "distances"],
     )
 
-    chunks: list[dict] = []
+    chunks = []
     for doc, meta, dist in zip(
         results["documents"][0],
         results["metadatas"][0],
@@ -71,34 +73,143 @@ def retrieve(query_embedding: list[float], top_k: int = TOP_K) -> list[dict]:
     return chunks
 
 
-def build_prompt(query: str, chunks: list[dict]) -> str:
-    """Build the RAG prompt from retrieved chunks."""
+def ask(
+    query: str,
+    top_k: int = TOP_K,
+    stream: bool = True,
+    history: list[dict] = [],
+) -> dict:
+    """Answer a legal question using retrieved legislation excerpts."""
+    t0 = time.time()
+
+    print("Decomposing and rewriting query...")
+    sub_questions = decompose_query(query)
+    print(f"Sub-questions: {sub_questions}\n")
+
+    all_chunks = []
+    expanded_queries = []
+    for sq in sub_questions:
+        expanded = rewrite_query(sq)
+        expanded_queries.append(expanded)
+        print(f"Expanded sub-question: {expanded}")
+        emb = embed_query(expanded)
+        sub_chunks = retrieve(emb, top_k=4)
+        all_chunks.extend(sub_chunks)
+
+    t_embed = time.time() - t0
+
+    # Deduplicate by source file + section number
+    seen = set()
+    unique_chunks = []
+    for chunk in all_chunks:
+        metadata = chunk.get("metadata", {})
+        key = (
+            metadata.get("source_file", ""),
+            metadata.get("section_num", ""),
+        )
+        if key not in seen:
+            seen.add(key)
+            unique_chunks.append(chunk)
+
+    chunks = unique_chunks[:5]  # was top_k (8)
+
+    # Unload embed model from VRAM before Mistral loads
+    try:
+        requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            data=json.dumps({"model": EMBED_MODEL, "keep_alive": 0}).encode(),
+            headers={"Content-Type": "application/json"},
+            timeout=15,
+        )
+        time.sleep(2)
+    except Exception:
+        pass
+
+    t_retrieve = time.time() - t0 - t_embed
+
+    # Retrieval quality check — honest fallback
+    top_similarity = max((c["similarity"] for c in chunks), default=0)
+    if top_similarity < MIN_SIMILARITY:
+        return {
+            "answer": (
+                "The available legislation database doesn't contain relevant "
+                "information for this query. Try rephrasing, or this topic may "
+                "not be covered in the current corpus."
+            ),
+            "expanded_query": expanded_queries[0] if expanded_queries else query,
+            "sources": [],
+            "timing": {
+                "embed_sec": round(t_embed, 3),
+                "retrieve_sec": round(t_retrieve, 3),
+                "generate_sec": 0,
+            },
+        }
+
+    prompt = build_prompt(query, chunks, history=history)
+    print(
+        f"\n[Retrieved {len(chunks)} chunks in {t_retrieve:.2f}s | "
+        f"top similarity: {top_similarity} | Generating...]\n"
+    )
+    answer = generate(prompt, stream=stream)
+    t_generate = time.time() - t0 - t_embed - t_retrieve
+
+    sources = [
+        {
+            "act": c["metadata"].get("act_title", ""),
+            "section": c["metadata"].get("section_num", ""),
+            "title": c["metadata"].get("section_title", ""),
+            "file": c["metadata"].get("source_file", ""),
+            "similarity": c["similarity"],
+        }
+        for c in chunks
+    ]
+
+    return {
+        "answer": answer,
+        "expanded_query": expanded_queries[0] if expanded_queries else query,
+        "sources": sources,
+        "timing": {
+            "embed_sec": round(t_embed, 3),
+            "retrieve_sec": round(t_retrieve, 3),
+            "generate_sec": round(t_generate, 3),
+        },
+    }
+
+
+def build_prompt(query: str, chunks: list[dict], history: list[dict] = []) -> str:
+    history_text = ""
+    if history:
+        history_text = "CONVERSATION HISTORY:\n"
+        for msg in history:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            history_text += f"{role}: {msg.get('content', '')}\n"
+        history_text += "\n"
+
     context_blocks = []
     for i, chunk in enumerate(chunks, 1):
         meta = chunk["metadata"]
         header = (
-            f"[{i}] {meta.get('act_title', 'Unknown Act')} - "
-            f"Section {meta.get('section_num', '?')}: "
-            f"{meta.get('section_title', '')}"
+            f"[{i}] {meta.get('act_title', 'Unknown Act')} - Section "
+            f"{meta.get('section_num', '?')}: {meta.get('section_title', '')}"
         )
         context_blocks.append(f"{header}\n{chunk['text']}")
-
     context = "\n\n---\n\n".join(context_blocks)
 
-    return f"""You are a legal assistant specializing in Indian law. Your knowledge base contains Indian legislation from 1939 to 2019.
-Answer ONLY using the legal text excerpts provided below.
-If the excerpts do not contain sufficient information to answer the question, respond with exactly:
-"This information is not available in the current database. The query may relate to legislation outside the 1939-2019 range (e.g. IPC 1860, CrPC, Evidence Act 1872)."
-Do NOT use your training knowledge. Do NOT fabricate penalties or section numbers.
-Cite Act name and Section number for every claim.
+    return f"""You are a legal assistant for Indian law. The user is the VICTIM.
 
-LEGAL EXCERPTS:
+{history_text}EXCERPTS FROM INDIAN LEGISLATION:
 {context}
 
-USER QUESTION:
-{query}
+QUESTION: {query}
 
-ANSWER (based only on excerpts above):"""
+INSTRUCTIONS:
+- Answer using ONLY the excerpts above
+- Cite exact Act name + Section number for every point
+- The user is in India — only cite Indian laws
+- Do NOT say "consult a lawyer"
+- Do NOT mention laws not in the excerpts above
+
+ANSWER:"""
 
 
 def _post_generate(payload: bytes, stream: bool, timeout: int = 300) -> requests.Response:
@@ -122,7 +233,7 @@ def generate(prompt: str, stream: bool = True) -> str:
             "keep_alive": "10m",
             "options": {
                 "num_predict": MAX_TOKENS,
-                "temperature": 0.2,
+                "temperature": 0,
                 "top_p": 0.9,
             },
         }
@@ -185,65 +296,50 @@ Legal search query:""",
         return query
 
 
-def ask(query: str, top_k: int = TOP_K, stream: bool = True) -> dict:
-    """
-    Full RAG pipeline: rewrite -> embed -> retrieve -> generate.
-    Returns answer, sources, and timing data.
-    """
-    t0 = time.time()
-
-    print("Rewriting query...")
-    expanded = rewrite_query(query)
-    print(f"Expanded: {expanded}\n")
-
-    query_embedding = embed_query(expanded)
-    t_embed = time.time() - t0
-
-    # Try to unload the embedding model before generation.
-    try:
-        requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            data=json.dumps({"model": EMBED_MODEL, "keep_alive": 0}).encode(),
-            headers={"Content-Type": "application/json"},
-            timeout=15,
-        )
-        for _ in range(10):
-            ps = requests.get(f"{OLLAMA_URL}/api/ps", timeout=5).json()
-            loaded = [model["name"] for model in ps.get("models", [])]
-            if EMBED_MODEL not in loaded and f"{EMBED_MODEL}:latest" not in loaded:
-                break
-            time.sleep(1)
-    except Exception:
-        pass
-
-    chunks = retrieve(query_embedding, top_k=top_k)
-    t_retrieve = time.time() - t0 - t_embed
-
-    prompt = build_prompt(query, chunks)
-    print(f"\n[Retrieved {len(chunks)} chunks in {t_retrieve:.2f}s | Generating...]\n")
-    answer = generate(prompt, stream=stream)
-    t_generate = time.time() - t0 - t_embed - t_retrieve
-
-    sources = [
+def decompose_query(query: str) -> list[str]:
+    """Break a legal question into separate sub-questions when appropriate."""
+    print(f"Decomposing: '{query}'")
+    payload = json.dumps(
         {
-            "act": chunk["metadata"].get("act_title", ""),
-            "section": chunk["metadata"].get("section_num", ""),
-            "title": chunk["metadata"].get("section_title", ""),
-            "file": chunk["metadata"].get("source_file", ""),
-            "similarity": chunk["similarity"],
-        }
-        for chunk in chunks
-    ]
+            "model": LLM_MODEL,
+            "prompt": f"""You are given a single legal question. If it contains multiple distinct legal issues, split it into separate questions. Otherwise return it as-is.
 
-    return {
-        "answer": answer,
-        "sources": sources,
-        "timing": {
-            "embed_sec": round(t_embed, 3),
-            "retrieve_sec": round(t_retrieve, 3),
-            "generate_sec": round(t_generate, 3),
-        },
-    }
+Output ONLY a valid JSON array of strings. No explanation. No preamble.
+Return at most 3 items.
+
+Question: {query}
+
+JSON array:""",
+            "stream": False,
+            "keep_alive": "10m",
+            "options": {"num_predict": 150, "temperature": 0},
+        }
+    ).encode("utf-8")
+
+    try:
+        response = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+        response.raise_for_status()
+        text = response.json()["response"].strip()
+
+        match = re.search(r"\[.*\]", text, re.DOTALL)
+        if not match:
+            return [query]
+
+        parsed = json.loads(match.group())
+        if not isinstance(parsed, list):
+            return [query]
+
+        sub_questions = [
+            item.strip() for item in parsed if isinstance(item, str) and item.strip()
+        ]
+        return sub_questions[:3] or [query]
+    except Exception:
+        return [query]
 
 
 if __name__ == "__main__":
