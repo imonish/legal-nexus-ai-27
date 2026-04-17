@@ -16,7 +16,7 @@ import time
 import chromadb
 import requests
 
-CHROMA_DIR = "./backend/chroma_store"
+CHROMA_DIR = "./chroma_store"
 COLLECTION = "legal_acts"
 
 OLLAMA_URL = "http://localhost:11434"
